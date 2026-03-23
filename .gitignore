@@ -1,0 +1,12 @@
+_site/
+.sass-cache/
+.jekyll-cache/
+.jekyll-metadata
+Gemfile.lock
+vendor/
+.bundle/
+.venv/
+extracted/
+extract_doc.py
+*.docx
+*.xlsx

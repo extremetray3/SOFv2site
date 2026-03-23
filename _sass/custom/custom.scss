@@ -1,0 +1,314 @@
+// ============================================
+// Site-wide customizations
+// ============================================
+
+// TOC starts collapsed — JS removes 'open' attr; this class prevents flash
+.main-content details.toc-collapsed:not([open]) > *:not(summary) {
+  display: none;
+}
+
+// Lines under H1 and H2 section headers (light blue, H1 thicker)
+.main-content h1 {
+  border-bottom: 3px solid #0078d4;
+  padding-bottom: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.main-content h2 {
+  border-bottom: 2px solid #0078d4;
+  padding-bottom: 0.35rem;
+  margin-bottom: 0.8rem;
+}
+
+// Key Highlights cards
+.key-highlights {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.kh-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  background: linear-gradient(135deg, rgba(0, 120, 212, 0.1) 0%, rgba(0, 164, 239, 0.05) 100%);
+  border: 1px solid rgba(0, 120, 212, 0.25);
+  border-left: 3px solid #0078d4;
+  border-radius: 8px;
+  transition: border-color 0.2s, background 0.2s;
+
+  &:hover {
+    border-color: #00a4ef;
+    background: linear-gradient(135deg, rgba(0, 120, 212, 0.15) 0%, rgba(0, 164, 239, 0.08) 100%);
+  }
+}
+
+.kh-icon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.kh-text {
+  color: #e0e0e0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+// Hero meta strip (Home page)
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 0.8rem 1.2rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.hero-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #b0b0b0;
+
+  strong {
+    color: #e0e0e0;
+  }
+}
+
+// ============================================
+// Slide Figures — deck visuals embedded in pages
+// ============================================
+
+.slide-figure {
+  margin: 1.5rem 0;
+  text-align: center;
+
+  .slide-img {
+    max-width: 100%;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  figcaption {
+    margin-top: 0.4rem;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.45);
+    font-style: italic;
+  }
+}
+
+// ============================================
+// Notes Panel — Discussion / Decision Capture
+// ============================================
+
+// Toolbar (top bar with customer input + buttons)
+.notes-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  margin: 1rem 0 1.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.notes-toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.notes-customer-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  margin-right: auto;
+}
+
+.notes-customer-input {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: #fff;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+  width: 180px;
+
+  &:focus {
+    outline: none;
+    border-color: #0078d4;
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.25);
+  }
+}
+
+.notes-toolbar-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.8);
+  padding: 0.25rem 0.6rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+}
+
+.notes-export-btn {
+  background: rgba(88, 166, 255, 0.15);
+  border-color: rgba(88, 166, 255, 0.3);
+  color: #0078d4;
+
+  &:hover {
+    background: rgba(88, 166, 255, 0.25);
+  }
+}
+
+.notes-clear-btn {
+  color: rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 255, 255, 0.08);
+
+  &:hover {
+    color: #f85149;
+    border-color: rgba(248, 81, 73, 0.3);
+    background: rgba(248, 81, 73, 0.1);
+  }
+}
+
+.notes-save-session-btn {
+  background: rgba(63, 185, 80, 0.12);
+  border-color: rgba(63, 185, 80, 0.3);
+  color: #3fb950;
+
+  &:hover {
+    background: rgba(63, 185, 80, 0.22);
+  }
+}
+
+.notes-load-session-btn {
+  background: rgba(210, 153, 34, 0.12);
+  border-color: rgba(210, 153, 34, 0.3);
+  color: #d29922;
+
+  &:hover {
+    background: rgba(210, 153, 34, 0.22);
+  }
+}
+
+// Per-heading notes control
+.notes-control {
+  margin: 0.3rem 0 0.8rem;
+}
+
+.notes-level-h2 {
+  margin-left: 0;
+}
+
+.notes-level-h3 {
+  margin-left: 0.5rem;
+}
+
+.notes-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.55);
+  padding: 0.15rem 0.5rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  &[aria-expanded="true"] {
+    background: rgba(88, 166, 255, 0.08);
+    border-color: rgba(88, 166, 255, 0.25);
+    color: #0078d4;
+  }
+}
+
+.notes-icon {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.notes-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+// Notes panel (textarea container)
+.notes-panel {
+  margin: 0.3rem 0 0;
+  animation: notes-slide-down 0.15s ease-out;
+}
+
+@keyframes notes-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notes-textarea {
+  width: 100%;
+  min-height: 60px;
+  max-height: 300px;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  color: #c9d1d9;
+  font-family: inherit;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: #0078d4;
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.2);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+    font-style: italic;
+  }
+}
+
+// Technology Mapping Table — wider capability column
+.tech-mapping-table {
+  width: 100%;
+  table-layout: fixed;
+
+  td:first-child {
+    font-weight: 600;
+  }
+}
