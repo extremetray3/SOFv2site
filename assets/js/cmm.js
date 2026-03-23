@@ -164,32 +164,40 @@
     container.innerHTML = '';
 
     DATA.forEach(function (group, gi) {
-      var catNum = gi + 1;
       var icon = CAT_ICONS[group.cat] || 'fluent-emoji-flat:clipboard';
 
       // Section wrapper
       var section = document.createElement('div');
-      section.className = 'qs-l1-section';
+      section.className = 'cmm-section';
 
-      // Header button (collapsible)
+      // Header button (collapsible — starts collapsed)
       var header = document.createElement('button');
-      header.className = 'qs-l1-header';
-      header.setAttribute('aria-expanded', 'true');
+      header.className = 'cmm-cat-header';
+      header.setAttribute('aria-expanded', 'false');
+
+      // Count assessed in this group
+      var assessedCount = 0;
+      group.items.forEach(function (_, ii) {
+        var k = responseKey(gi, ii);
+        if (state.responses[k] && state.responses[k].level !== '' && state.responses[k].level !== undefined) assessedCount++;
+      });
+
       header.innerHTML =
-        '<span class="qs-l1-chevron">\u25BE</span>' +
-        '<iconify-icon icon="' + icon + '" width="24" height="24" style="vertical-align:middle"></iconify-icon> ' +
-        '<span class="qs-l1-title">' + catNum + '. ' + group.cat + '</span>' +
-        '<span class="qs-l1-badge">' + group.items.length + ' capabilities</span>';
+        '<span class="cmm-cat-chevron">\u25B8</span>' +
+        '<iconify-icon icon="' + icon + '" width="28" height="28" style="vertical-align:middle"></iconify-icon> ' +
+        '<span class="cmm-cat-title">' + group.cat + '</span>' +
+        '<span class="cmm-cat-count">' + assessedCount + ' / ' + group.items.length + '</span>';
 
       var body = document.createElement('div');
-      body.className = 'qs-l1-body';
+      body.className = 'cmm-cat-body';
+      body.style.display = 'none'; // start collapsed
 
       header.addEventListener('click', (function (b, h) {
         return function () {
           var open = b.style.display !== 'none';
           b.style.display = open ? 'none' : '';
           h.setAttribute('aria-expanded', String(!open));
-          h.querySelector('.qs-l1-chevron').textContent = open ? '\u25B8' : '\u25BE';
+          h.querySelector('.cmm-cat-chevron').textContent = open ? '\u25B8' : '\u25BE';
         };
       })(body, header));
 
@@ -197,56 +205,63 @@
       group.items.forEach(function (item, ii) {
         var key = responseKey(gi, ii);
         var resp = state.responses[key] || { level: '', notes: '' };
-        var subNum = catNum + '.' + (ii + 1);
         var currentBand = levelToBand(resp.level);
+        var targetBand = levelToBand(item.target);
+        var isAssessed = (resp.level !== '' && resp.level !== undefined);
 
         var card = document.createElement('div');
-        card.className = 'qs-card';
-        if (resp.level !== '' && resp.level !== undefined) card.classList.add('qs-card--assessed');
+        card.className = 'cmm-card' + (isAssessed ? ' cmm-card--assessed' : '');
 
         // Build level select options
-        var selectOpts = '<option value="">\u2014 Select Level \u2014</option>';
+        var selectOpts = '<option value="">\u2014 Select \u2014</option>';
         LEVEL_OPTIONS.forEach(function (lv) {
-          var sel = (resp.level !== '' && parseInt(resp.level, 10) === lv) ? ' selected' : '';
+          var sel = (isAssessed && parseInt(resp.level, 10) === lv) ? ' selected' : '';
           selectOpts += '<option value="' + lv + '"' + sel + '>' + lv + '</option>';
         });
 
-        // Build the 4 maturity state indicators
-        var statesHtml = '<div class="cmm-states">';
+        // Gap info
+        var gapHtml = '';
+        if (isAssessed) {
+          var gap = parseInt(resp.level, 10) - item.target;
+          if (gap >= 0) {
+            gapHtml = '<span class="cmm-badge cmm-badge-met">\u2713 On/Above Target</span>';
+          } else {
+            gapHtml = '<span class="cmm-badge cmm-badge-gap">Gap: ' + gap + '</span>';
+          }
+        }
+
+        // Build the 4 maturity band boxes
+        var bandsHtml = '<div class="cmm-bands">';
+        var bandRanges = ['0\u201350', '100\u2013150', '200\u2013250', '300\u2013400'];
         for (var si = 0; si < 4; si++) {
-          var active = (currentBand === si) ? ' cmm-state-active' : '';
-          var bandClass = (currentBand === si) ? ' ' + BAND_CSS[si] : '';
-          statesHtml += '<div class="cmm-state' + active + bandClass + '">' +
-            '<div class="cmm-state-label">' + BAND_LABELS[si] + '</div>' +
-            '<div class="cmm-state-desc">' + escapeHtml(item.states[si]) + '</div>' +
+          var isActive = (currentBand === si);
+          var isTarget = (targetBand === si);
+          var cls = 'cmm-band cmm-band-' + (si + 1) + (isActive ? ' cmm-band--active' : '') + (isTarget ? ' cmm-band--target' : '');
+          bandsHtml +=
+            '<div class="' + cls + '">' +
+              '<div class="cmm-band-header">' +
+                '<span class="cmm-band-range">' + bandRanges[si] + '</span>' +
+                '<span class="cmm-band-name">' + BAND_LABELS[si] + '</span>' +
+              '</div>' +
+              '<div class="cmm-band-desc">' + escapeHtml(item.states[si]) + '</div>' +
+              (isTarget ? '<div class="cmm-band-target-tag">\u25C6 TARGET</div>' : '') +
             '</div>';
         }
-        statesHtml += '</div>';
-
-        // Target indicator
-        var targetBand = levelToBand(item.target);
-        var targetHtml = '<span class="cmm-target-badge ' + BAND_CSS[targetBand] + '">Target: ' + item.target + ' (' + BAND_LABELS[targetBand] + ')</span>';
-
-        // Gap indicator
-        var gapHtml = '';
-        if (resp.level !== '' && resp.level !== undefined) {
-          var gap = parseInt(resp.level, 10) - item.target;
-          var gapClass = gap >= 0 ? 'cmm-gap-met' : 'cmm-gap-behind';
-          gapHtml = '<span class="cmm-gap-badge ' + gapClass + '">Gap: ' + (gap >= 0 ? '+' : '') + gap + '</span>';
-        }
+        bandsHtml += '</div>';
 
         card.innerHTML =
-          '<div class="qs-card-header">' +
-            '<span class="qs-l2-label">' + subNum + ' ' + escapeHtml(item.sub) + '</span>' +
+          '<div class="cmm-card-top">' +
+            '<div class="cmm-card-title">' +
+              '<span class="cmm-card-name">' + escapeHtml(item.sub) + '</span>' +
+            '</div>' +
+            '<div class="cmm-card-controls">' +
+              '<select class="cmm-level-select" data-key="' + key + '">' + selectOpts + '</select>' +
+              gapHtml +
+            '</div>' +
           '</div>' +
-          '<p class="qs-question">' + escapeHtml(item.desc) + '</p>' +
-          '<div class="cmm-level-row">' +
-            '<label class="qs-maturity-label">Current Level:</label>' +
-            '<select class="cmm-level-select" data-key="' + key + '">' + selectOpts + '</select>' +
-            targetHtml + gapHtml +
-          '</div>' +
-          statesHtml +
-          '<textarea class="qs-notes" data-key="' + key + '" placeholder="Discussion notes\u2026" rows="2">' + escapeHtml(resp.notes) + '</textarea>';
+          '<p class="cmm-card-desc">' + escapeHtml(item.desc) + '</p>' +
+          bandsHtml +
+          '<textarea class="cmm-card-notes" data-key="' + key + '" placeholder="Discussion notes\u2026" rows="2">' + escapeHtml(resp.notes) + '</textarea>';
 
         body.appendChild(card);
       });
@@ -262,15 +277,13 @@
         var key = e.target.getAttribute('data-key');
         if (!state.responses[key]) state.responses[key] = { level: '', notes: '' };
         state.responses[key].level = e.target.value;
-
-        // Re-render to update state highlights and gap
         saveState();
         render();
       }
     });
 
     container.addEventListener('input', function (e) {
-      if (e.target.classList.contains('qs-notes')) {
+      if (e.target.classList.contains('cmm-card-notes')) {
         var key = e.target.getAttribute('data-key');
         if (!state.responses[key]) state.responses[key] = { level: '', notes: '' };
         state.responses[key].notes = e.target.value;
@@ -327,22 +340,22 @@
   }
 
   function expandAll() {
-    var bodies = document.querySelectorAll('#cmm-container .qs-l1-body');
-    var headers = document.querySelectorAll('#cmm-container .qs-l1-header');
+    var bodies = document.querySelectorAll('#cmm-container .cmm-cat-body');
+    var headers = document.querySelectorAll('#cmm-container .cmm-cat-header');
     for (var i = 0; i < bodies.length; i++) {
       bodies[i].style.display = '';
       headers[i].setAttribute('aria-expanded', 'true');
-      headers[i].querySelector('.qs-l1-chevron').textContent = '\u25BE';
+      headers[i].querySelector('.cmm-cat-chevron').textContent = '\u25BE';
     }
   }
 
   function collapseAll() {
-    var bodies = document.querySelectorAll('#cmm-container .qs-l1-body');
-    var headers = document.querySelectorAll('#cmm-container .qs-l1-header');
+    var bodies = document.querySelectorAll('#cmm-container .cmm-cat-body');
+    var headers = document.querySelectorAll('#cmm-container .cmm-cat-header');
     for (var i = 0; i < bodies.length; i++) {
       bodies[i].style.display = 'none';
       headers[i].setAttribute('aria-expanded', 'false');
-      headers[i].querySelector('.qs-l1-chevron').textContent = '\u25B8';
+      headers[i].querySelector('.cmm-cat-chevron').textContent = '\u25B8';
     }
   }
 

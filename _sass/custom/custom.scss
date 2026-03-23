@@ -1,4 +1,4 @@
-// ============================================
+﻿// ============================================
 // Site-wide customizations
 // ============================================
 
@@ -15,7 +15,7 @@
   padding-bottom: 0.25rem;
 }
 
-// TOC starts collapsed — JS removes 'open' attr; this class prevents flash
+// TOC starts collapsed â€” JS removes 'open' attr; this class prevents flash
 .main-content details.toc-collapsed:not([open]) > *:not(summary) {
   display: none;
 }
@@ -94,7 +94,7 @@
 }
 
 // ============================================
-// Slide Figures — deck visuals embedded in pages
+// Slide Figures â€” deck visuals embedded in pages
 // ============================================
 
 .slide-figure {
@@ -117,7 +117,7 @@
 }
 
 // ============================================
-// Notes Panel — Discussion / Decision Capture
+// Notes Panel â€” Discussion / Decision Capture
 // ============================================
 
 // Toolbar (top bar with customer input + buttons)
@@ -316,7 +316,7 @@
   }
 }
 
-// Technology Mapping Table — wider capability column
+// Technology Mapping Table â€” wider capability column
 .tech-mapping-table {
   width: 100%;
   table-layout: fixed;
@@ -327,70 +327,159 @@
 }
 
 // ============================================
-// CMM Assessment — Level-based maturity tool
+// CMM Assessment — Interactive Maturity Tool
 // ============================================
-
-// QuickScan-compatible shared classes (L1 sections, cards, etc.)
-// are already defined above in the aisec-site pattern. CMM-specific
-// additions below.
 
 // Color legend bar
 .cmm-legend {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-bottom: 1.2rem;
+  margin-bottom: 1.5rem;
 }
 
 .cmm-legend-item {
-  padding: 0.3rem 0.7rem;
-  border-radius: 4px;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
   font-size: 0.78rem;
   font-weight: 600;
   border: 1px solid transparent;
 }
 
-// Band colors — shared by legend, state highlights, target/gap badges
-.cmm-band-1 {
-  background: rgba(248, 81, 73, 0.12);
-  border-color: rgba(248, 81, 73, 0.35);
-  color: #f85149;
-}
-.cmm-band-2 {
-  background: rgba(210, 153, 34, 0.12);
-  border-color: rgba(210, 153, 34, 0.35);
-  color: #d29922;
-}
-.cmm-band-3 {
-  background: rgba(88, 166, 255, 0.12);
-  border-color: rgba(88, 166, 255, 0.35);
-  color: #58a6ff;
-}
-.cmm-band-4 {
-  background: rgba(63, 185, 80, 0.12);
-  border-color: rgba(63, 185, 80, 0.35);
-  color: #3fb950;
+.cmm-legend-item.cmm-band-1 { background: rgba(248, 81, 73, 0.12); border-color: rgba(248, 81, 73, 0.35); color: #f85149; }
+.cmm-legend-item.cmm-band-2 { background: rgba(210, 153, 34, 0.12); border-color: rgba(210, 153, 34, 0.35); color: #d29922; }
+.cmm-legend-item.cmm-band-3 { background: rgba(88, 166, 255, 0.12); border-color: rgba(88, 166, 255, 0.35); color: #58a6ff; }
+.cmm-legend-item.cmm-band-4 { background: rgba(63, 185, 80, 0.12); border-color: rgba(63, 185, 80, 0.35); color: #3fb950; }
+
+// ---- Category sections ----
+.cmm-section {
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 0.5rem;
+
+  &:last-child {
+    border-bottom: none;
+  }
 }
 
-// Level select row
-.cmm-level-row {
+.cmm-cat-header {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 0.6rem;
-  margin: 0.5rem 0;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.9rem 1.2rem;
+  background: linear-gradient(135deg, rgba(0, 120, 212, 0.1) 0%, rgba(0, 164, 239, 0.04) 100%);
+  border: 1px solid rgba(0, 120, 212, 0.2);
+  border-radius: 10px;
+  color: #e0e0e0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+  text-align: left;
+
+  &:hover {
+    background: linear-gradient(135deg, rgba(0, 120, 212, 0.16) 0%, rgba(0, 164, 239, 0.08) 100%);
+    border-color: rgba(0, 120, 212, 0.35);
+    box-shadow: 0 2px 8px rgba(0, 120, 212, 0.1);
+  }
 }
 
+.cmm-cat-chevron {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.5);
+  width: 1rem;
+  text-align: center;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.cmm-cat-title {
+  flex: 1;
+  letter-spacing: 0.01em;
+}
+
+.cmm-cat-count {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.2rem 0.65rem;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.cmm-cat-body {
+  padding: 0.75rem 0 0.25rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+// ---- Capability cards ----
+.cmm-card {
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-left: 3px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-left-color 0.25s, background 0.25s, box-shadow 0.25s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.035);
+  }
+}
+
+.cmm-card--assessed {
+  border-left-color: #0078d4;
+  background: rgba(0, 120, 212, 0.025);
+}
+
+.cmm-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.cmm-card-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.cmm-card-name {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #e0e0e0;
+}
+
+.cmm-card-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.cmm-card-desc {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0 0 0.75rem;
+}
+
+// ---- Level select ----
 .cmm-level-select {
   appearance: auto;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 4px;
-  color: rgba(255, 255, 255, 0.7);
-  padding: 0.3rem 0.5rem;
-  font-size: 0.85rem;
+  color: #e0e0e0;
+  padding: 0.25rem 0.4rem;
+  font-size: 0.82rem;
   cursor: pointer;
-  min-width: 140px;
 
   &:focus {
     outline: none;
@@ -399,223 +488,152 @@
   }
 }
 
-// Target & gap badges
-.cmm-target-badge,
-.cmm-gap-badge {
-  font-size: 0.75rem;
+// ---- Gap / target badges ----
+.cmm-badge {
+  font-size: 0.72rem;
   font-weight: 600;
   padding: 0.15rem 0.5rem;
   border-radius: 10px;
+  white-space: nowrap;
 }
 
-.cmm-gap-met {
+.cmm-badge-met {
   background: rgba(63, 185, 80, 0.12);
   border: 1px solid rgba(63, 185, 80, 0.3);
   color: #3fb950;
 }
 
-.cmm-gap-behind {
+.cmm-badge-gap {
   background: rgba(248, 81, 73, 0.12);
   border: 1px solid rgba(248, 81, 73, 0.3);
   color: #f85149;
 }
 
-// Maturity state cards (4 per capability)
-.cmm-states {
+// ---- Maturity band boxes (4 across) ----
+.cmm-bands {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 0.5rem;
-  margin: 0.6rem 0 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
-@media (max-width: 768px) {
-  .cmm-states {
-    grid-template-columns: 1fr 1fr;
-  }
+@media (max-width: 900px) {
+  .cmm-bands { grid-template-columns: repeat(2, 1fr); }
 }
-
 @media (max-width: 480px) {
-  .cmm-states {
-    grid-template-columns: 1fr;
-  }
+  .cmm-bands { grid-template-columns: 1fr; }
 }
 
-.cmm-state {
-  padding: 0.5rem 0.6rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.02);
-  opacity: 0.45;
-  transition: opacity 0.2s, border-color 0.2s, background 0.2s;
-}
-
-.cmm-state-active {
-  opacity: 1;
-  border-width: 2px;
-}
-
-.cmm-state-active.cmm-band-1 {
-  border-color: rgba(248, 81, 73, 0.6);
-  background: rgba(248, 81, 73, 0.08);
-}
-.cmm-state-active.cmm-band-2 {
-  border-color: rgba(210, 153, 34, 0.6);
-  background: rgba(210, 153, 34, 0.08);
-}
-.cmm-state-active.cmm-band-3 {
-  border-color: rgba(88, 166, 255, 0.6);
-  background: rgba(88, 166, 255, 0.08);
-}
-.cmm-state-active.cmm-band-4 {
-  border-color: rgba(63, 185, 80, 0.6);
-  background: rgba(63, 185, 80, 0.08);
-}
-
-.cmm-state-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  margin-bottom: 0.25rem;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.cmm-state-active .cmm-state-label {
-  color: inherit;
-}
-
-.cmm-state-desc {
-  font-size: 0.8rem;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.cmm-state-active .cmm-state-desc {
-  color: #e0e0e0;
-}
-
-// QuickScan shared styles (reused for CMM — L1 sections, cards, etc.)
-.qs-l1-section {
-  margin-bottom: 0;
-  border-top: 3px solid #0078d4;
-  padding-top: 1.2rem;
-
-  &:first-child {
-    border-top: none;
-    padding-top: 0;
-  }
-}
-
-.qs-l1-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.7rem 1rem;
-  background: linear-gradient(135deg, rgba(0, 120, 212, 0.12) 0%, rgba(0, 164, 239, 0.06) 100%);
-  border: 1px solid rgba(0, 120, 212, 0.25);
+.cmm-band {
+  position: relative;
+  padding: 0.6rem 0.7rem;
   border-radius: 8px;
-  color: #e0e0e0;
-  font-size: 1.05rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
-  text-align: left;
-
-  &:hover {
-    background: linear-gradient(135deg, rgba(0, 120, 212, 0.18) 0%, rgba(0, 164, 239, 0.1) 100%);
-    border-color: rgba(0, 120, 212, 0.4);
-  }
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.015);
+  opacity: 0.35;
+  transition: all 0.3s ease;
+  min-height: 72px;
 }
 
-.qs-l1-chevron {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.5);
-  width: 1rem;
-  text-align: center;
+// Thin top accent always visible
+.cmm-band.cmm-band-1 { border-top: 3px solid rgba(248, 81, 73, 0.2); }
+.cmm-band.cmm-band-2 { border-top: 3px solid rgba(210, 153, 34, 0.2); }
+.cmm-band.cmm-band-3 { border-top: 3px solid rgba(88, 166, 255, 0.2); }
+.cmm-band.cmm-band-4 { border-top: 3px solid rgba(63, 185, 80, 0.2); }
+
+// Active band — lit up with glow
+.cmm-band--active {
+  opacity: 1;
 }
 
-.qs-l1-title {
-  flex: 1;
+.cmm-band--active.cmm-band-1 {
+  background: rgba(248, 81, 73, 0.07);
+  border-color: rgba(248, 81, 73, 0.35);
+  border-top-color: #f85149;
+  box-shadow: 0 0 16px rgba(248, 81, 73, 0.12), inset 0 0 24px rgba(248, 81, 73, 0.03);
+}
+.cmm-band--active.cmm-band-2 {
+  background: rgba(210, 153, 34, 0.07);
+  border-color: rgba(210, 153, 34, 0.35);
+  border-top-color: #d29922;
+  box-shadow: 0 0 16px rgba(210, 153, 34, 0.12), inset 0 0 24px rgba(210, 153, 34, 0.03);
+}
+.cmm-band--active.cmm-band-3 {
+  background: rgba(88, 166, 255, 0.07);
+  border-color: rgba(88, 166, 255, 0.35);
+  border-top-color: #58a6ff;
+  box-shadow: 0 0 16px rgba(88, 166, 255, 0.12), inset 0 0 24px rgba(88, 166, 255, 0.03);
+}
+.cmm-band--active.cmm-band-4 {
+  background: rgba(63, 185, 80, 0.07);
+  border-color: rgba(63, 185, 80, 0.35);
+  border-top-color: #3fb950;
+  box-shadow: 0 0 16px rgba(63, 185, 80, 0.12), inset 0 0 24px rgba(63, 185, 80, 0.03);
 }
 
-.qs-l1-badge {
-  font-size: 0.72rem;
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.45);
-  background: rgba(255, 255, 255, 0.06);
-  padding: 0.15rem 0.5rem;
-  border-radius: 10px;
-}
+// Target indicator on band
+.cmm-band--target { opacity: 0.55; }
+.cmm-band--target.cmm-band--active { opacity: 1; }
 
-.qs-l1-body {
-  padding: 0.6rem 0 1rem 0;
+.cmm-band-target-tag {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.4rem;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+}
+.cmm-band--active .cmm-band-target-tag { color: rgba(255, 255, 255, 0.65); }
+
+.cmm-band-header {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 0.05rem;
+  margin-bottom: 0.3rem;
 }
 
-.qs-card {
-  padding: 1rem 1.2rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: none;
-  border-left: 3px solid rgba(255, 255, 255, 0.15);
-  border-radius: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  transition: border-left-color 0.2s, background 0.2s;
-
-  &:last-child {
-    border-bottom: none;
-  }
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.05);
-  }
+.cmm-band-range {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.25);
 }
+.cmm-band--active .cmm-band-range { color: rgba(255, 255, 255, 0.65); }
 
-.qs-card--assessed {
-  border-left-color: #0078d4;
-  background: rgba(0, 120, 212, 0.04);
-}
-
-.qs-card-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.qs-l2-label {
+.cmm-band-name {
+  font-size: 0.7rem;
   font-weight: 600;
-  font-size: 0.95rem;
-  color: #e0e0e0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.25);
 }
 
-.qs-maturity-label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.55);
-}
+.cmm-band--active.cmm-band-1 .cmm-band-name { color: #f85149; }
+.cmm-band--active.cmm-band-2 .cmm-band-name { color: #d29922; }
+.cmm-band--active.cmm-band-3 .cmm-band-name { color: #58a6ff; }
+.cmm-band--active.cmm-band-4 .cmm-band-name { color: #3fb950; }
 
-.qs-question {
-  color: #b0b0b0;
-  font-size: 0.9rem;
-  line-height: 1.55;
-  margin: 0 0 0.6rem;
-  font-style: italic;
+.cmm-band-desc {
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.25);
 }
+.cmm-band--active .cmm-band-desc { color: #d0d0d0; }
 
-.qs-notes {
+// ---- Notes textarea ----
+.cmm-card-notes {
   width: 100%;
-  min-height: 50px;
+  min-height: 38px;
   max-height: 200px;
-  padding: 0.5rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.4rem 0.5rem;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 4px;
   color: #c9d1d9;
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   line-height: 1.5;
   resize: vertical;
   display: block;
@@ -624,13 +642,42 @@
     outline: none;
     border-color: #0078d4;
     box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.04);
   }
 
   &::placeholder {
-    color: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.2);
     font-style: italic;
   }
+}
+
+// ---- Shared toolbar/progress elements used by CMM page ----
+.qs-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  margin: 0 0 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.qs-toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.qs-customer-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  margin-right: auto;
 }
 
 .qs-customer-input {
