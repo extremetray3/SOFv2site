@@ -3,12 +3,14 @@
 // ============================================
 
 // Give the sidebar site title breathing room
-.site-header {
-  padding-top: 1.5rem;
+.side-bar .site-header {
+  padding-top: 1rem;
+  padding-bottom: 0.5rem;
 }
-.site-title {
-  font-size: 1.15rem !important;
-  line-height: 1.35;
+.side-bar .site-title.lh-tight {
+  font-size: 1.1rem !important;
+  line-height: 1.4 !important;
+  padding-top: 0.5rem;
 }
 
 // TOC starts collapsed — JS removes 'open' attr; this class prevents flash
