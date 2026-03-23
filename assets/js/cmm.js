@@ -7,12 +7,9 @@
   var STORAGE_KEY = 'sof-cmm-assessment';
   var SESSION_PREFIX = 'sof-cmm-session-';
   var CUSTOMER_KEY = 'sof-notes-customer'; // shared with notes panel
+  var DEFAULT_LEVEL = 50; // pre-populate every capability
 
   // Level value → maturity band (0-indexed into states[])
-  // 0,50 → 0 (Not started / Starting)
-  // 100,150 → 1 (Planning / Developing)
-  // 200,250 → 2 (Rolling out / Standardizing)
-  // 300,350,400 → 3 (Operating / Optimizing)
   var LEVEL_OPTIONS = [0, 50, 100, 150, 200, 250, 300, 350, 400];
   var BAND_LABELS = [
     'Not Started / Starting',
@@ -40,6 +37,43 @@
     'Governance / Compliance': 'fluent-emoji-flat:classical-building',
     'Ops Model & Services': 'fluent-emoji-flat:hammer-and-wrench',
     'Metrics / Outcomes': 'fluent-emoji-flat:bullseye'
+  };
+
+  // Sub-category icon map
+  var SUB_ICONS = {
+    1: 'fluent-emoji-flat:people-hugging',
+    2: 'fluent-emoji-flat:wrench',
+    3: 'fluent-emoji-flat:robot',
+    4: 'fluent-emoji-flat:graduation-cap',
+    5: 'fluent-emoji-flat:clipboard',
+    6: 'fluent-emoji-flat:shield',
+    7: 'fluent-emoji-flat:crystal-ball',
+    8: 'fluent-emoji-flat:link',
+    9: 'fluent-emoji-flat:laptop',
+    10: 'fluent-emoji-flat:cloud',
+    11: 'fluent-emoji-flat:locked',
+    12: 'fluent-emoji-flat:magnifying-glass-tilted-left',
+    13: 'fluent-emoji-flat:satellite-antenna',
+    14: 'fluent-emoji-flat:puzzle-piece',
+    15: 'fluent-emoji-flat:detective',
+    16: 'fluent-emoji-flat:books',
+    17: 'fluent-emoji-flat:chart-increasing',
+    18: 'fluent-emoji-flat:balance-scale',
+    19: 'fluent-emoji-flat:page-with-curl',
+    20: 'fluent-emoji-flat:eye',
+    21: 'fluent-emoji-flat:identification-card',
+    22: 'fluent-emoji-flat:fire-extinguisher',
+    23: 'fluent-emoji-flat:card-index-dividers',
+    24: 'fluent-emoji-flat:office-building',
+    25: 'fluent-emoji-flat:handshake',
+    26: 'fluent-emoji-flat:rocket',
+    27: 'fluent-emoji-flat:stopwatch',
+    28: 'fluent-emoji-flat:test-tube',
+    29: 'fluent-emoji-flat:briefcase',
+    30: 'fluent-emoji-flat:star',
+    31: 'fluent-emoji-flat:electric-plug',
+    32: 'fluent-emoji-flat:high-voltage',
+    33: 'fluent-emoji-flat:package'
   };
 
   // ---- Verbatim data from SOF-AI-Enabled SOC CMM.xlsx ----
@@ -123,6 +157,18 @@
 
   function responseKey(gi, ii) { return gi + '-' + ii; }
 
+  function getResp(key) {
+    return state.responses[key] || { level: DEFAULT_LEVEL, notes: '', target: null };
+  }
+
+  function getEffectiveTarget(key, item) {
+    var resp = state.responses[key];
+    if (resp && resp.target !== null && resp.target !== undefined && resp.target !== '') {
+      return parseInt(resp.target, 10);
+    }
+    return item.target;
+  }
+
   function getCustomer() {
     try { return localStorage.getItem(CUSTOMER_KEY) || ''; } catch (e) { return ''; }
   }
@@ -157,11 +203,74 @@
     if (fillEl) fillEl.style.width = pct + '%';
   }
 
+  // ---- Update a single card in-place (no full re-render) ----
+  function updateCard(card, gi, ii) {
+    var item = DATA[gi].items[ii];
+    var key = responseKey(gi, ii);
+    var resp = getResp(key);
+    var level = (resp.level !== '' && resp.level !== undefined) ? parseInt(resp.level, 10) : DEFAULT_LEVEL;
+    var effectiveTarget = getEffectiveTarget(key, item);
+    var currentBand = levelToBand(level);
+    var targetBand = levelToBand(effectiveTarget);
+
+    // Update card assessed class
+    card.className = 'cmm-card cmm-card--assessed';
+
+    // Update gap badge
+    var gapContainer = card.querySelector('.cmm-gap-container');
+    if (gapContainer) {
+      var gap = level - effectiveTarget;
+      if (gap >= 0) {
+        gapContainer.innerHTML = '<span class="cmm-badge cmm-badge-met">\u2713 On/Above Target</span>';
+      } else {
+        gapContainer.innerHTML = '<span class="cmm-badge cmm-badge-gap">Gap: ' + gap + '</span>';
+      }
+    }
+
+    // Update band boxes
+    var bands = card.querySelectorAll('.cmm-band');
+    for (var si = 0; si < bands.length; si++) {
+      var isActive = (currentBand === si);
+      var isTarget = (targetBand === si);
+      bands[si].className = 'cmm-band cmm-band-' + (si + 1) +
+        (isActive ? ' cmm-band--active' : '') +
+        (isTarget ? ' cmm-band--target' : '');
+      // Update target tag
+      var existingTag = bands[si].querySelector('.cmm-band-target-tag');
+      if (isTarget && !existingTag) {
+        var tag = document.createElement('div');
+        tag.className = 'cmm-band-target-tag';
+        tag.textContent = '\u25C6 TARGET';
+        bands[si].appendChild(tag);
+      } else if (!isTarget && existingTag) {
+        existingTag.remove();
+      }
+    }
+
+    // Update category assessed count
+    var section = card.closest('.cmm-section');
+    if (section) {
+      var catCountEl = section.querySelector('.cmm-cat-count');
+      if (catCountEl) {
+        var group = DATA[gi];
+        var assessedCount = 0;
+        group.items.forEach(function (_, idx) {
+          var k = responseKey(gi, idx);
+          var r = state.responses[k];
+          if (r && r.level !== '' && r.level !== undefined) assessedCount++;
+        });
+        catCountEl.textContent = assessedCount + ' / ' + group.items.length;
+      }
+    }
+  }
+
   // ---- Render ----
   function render() {
     var container = document.getElementById('cmm-container');
     if (!container) return;
     container.innerHTML = '';
+
+    var BAND_RANGES = ['0\u201350', '100\u2013150', '200\u2013250', '300\u2013400'];
 
     DATA.forEach(function (group, gi) {
       var catNum = gi + 1;
@@ -180,13 +289,14 @@
       var assessedCount = 0;
       group.items.forEach(function (_, ii) {
         var k = responseKey(gi, ii);
-        if (state.responses[k] && state.responses[k].level !== '' && state.responses[k].level !== undefined) assessedCount++;
+        var r = state.responses[k];
+        if (r && r.level !== '' && r.level !== undefined) assessedCount++;
       });
 
       header.innerHTML =
         '<span class="cmm-cat-chevron">\u25B8</span>' +
         '<iconify-icon icon="' + icon + '" width="28" height="28" style="vertical-align:middle"></iconify-icon> ' +
-        '<span class="cmm-cat-title">' + catNum + '. ' + group.cat + '</span>' +
+        '<span class="cmm-cat-title">' + catNum + '. ' + escapeHtml(group.cat) + '</span>' +
         '<span class="cmm-cat-count">' + assessedCount + ' / ' + group.items.length + '</span>';
 
       var body = document.createElement('div');
@@ -202,39 +312,74 @@
         };
       })(body, header));
 
-      // Render each capability card
+      // Render each capability as a two-level collapse:
+      // A clickable sub-cat header row, then a collapsible detail panel
       group.items.forEach(function (item, ii) {
         var key = responseKey(gi, ii);
-        var resp = state.responses[key] || { level: '', notes: '' };
+        var resp = getResp(key);
         var subNum = catNum + '.' + (ii + 1);
-        var currentBand = levelToBand(resp.level);
-        var targetBand = levelToBand(item.target);
+        var level = (resp.level !== '' && resp.level !== undefined) ? parseInt(resp.level, 10) : DEFAULT_LEVEL;
+        var effectiveTarget = getEffectiveTarget(key, item);
+        var currentBand = levelToBand(level);
+        var targetBand = levelToBand(effectiveTarget);
         var isAssessed = (resp.level !== '' && resp.level !== undefined);
+        var subIcon = SUB_ICONS[item.id] || 'fluent-emoji-flat:pushpin';
 
+        // Wrapper for the sub-category
+        var subWrapper = document.createElement('div');
+        subWrapper.className = 'cmm-sub-wrapper';
+
+        // Sub-category title row (clickable to expand detail)
+        var subHeader = document.createElement('button');
+        subHeader.className = 'cmm-sub-header' + (isAssessed ? ' cmm-sub-header--assessed' : '');
+        subHeader.setAttribute('aria-expanded', 'false');
+
+        // Quick summary for the title row
+        var bandLabel = currentBand >= 0 ? BAND_LABELS[currentBand] : '\u2014';
+
+        subHeader.innerHTML =
+          '<span class="cmm-sub-chevron">\u25B8</span>' +
+          '<iconify-icon icon="' + subIcon + '" width="18" height="18" style="vertical-align:middle"></iconify-icon> ' +
+          '<span class="cmm-card-num">' + subNum + '</span>' +
+          '<span class="cmm-sub-name">' + escapeHtml(item.sub) + '</span>' +
+          '<span class="cmm-sub-level-badge">' + (isAssessed ? level : DEFAULT_LEVEL) + '</span>' +
+          '<span class="cmm-sub-band-label">' + bandLabel + '</span>';
+
+        // Detail panel (hidden by default)
         var card = document.createElement('div');
         card.className = 'cmm-card' + (isAssessed ? ' cmm-card--assessed' : '');
+        card.style.display = 'none';
+        card.setAttribute('data-gi', gi);
+        card.setAttribute('data-ii', ii);
+
+        // Toggle detail on sub-header click
+        subHeader.addEventListener('click', (function (c, sh) {
+          return function () {
+            var open = c.style.display !== 'none';
+            c.style.display = open ? 'none' : '';
+            sh.setAttribute('aria-expanded', String(!open));
+            sh.querySelector('.cmm-sub-chevron').textContent = open ? '\u25B8' : '\u25BE';
+          };
+        })(card, subHeader));
 
         // Build level select options
-        var selectOpts = '<option value="">\u2014 Select \u2014</option>';
+        var selectOpts = '';
         LEVEL_OPTIONS.forEach(function (lv) {
-          var sel = (isAssessed && parseInt(resp.level, 10) === lv) ? ' selected' : '';
+          var sel = (level === lv) ? ' selected' : '';
           selectOpts += '<option value="' + lv + '"' + sel + '>' + lv + '</option>';
         });
 
         // Gap info
-        var gapHtml = '';
-        if (isAssessed) {
-          var gap = parseInt(resp.level, 10) - item.target;
-          if (gap >= 0) {
-            gapHtml = '<span class="cmm-badge cmm-badge-met">\u2713 On/Above Target</span>';
-          } else {
-            gapHtml = '<span class="cmm-badge cmm-badge-gap">Gap: ' + gap + '</span>';
-          }
+        var gap = level - effectiveTarget;
+        var gapHtml;
+        if (gap >= 0) {
+          gapHtml = '<span class="cmm-badge cmm-badge-met">\u2713 On/Above Target</span>';
+        } else {
+          gapHtml = '<span class="cmm-badge cmm-badge-gap">Gap: ' + gap + '</span>';
         }
 
         // Build the 4 maturity band boxes
         var bandsHtml = '<div class="cmm-bands">';
-        var bandRanges = ['0\u201350', '100\u2013150', '200\u2013250', '300\u2013400'];
         for (var si = 0; si < 4; si++) {
           var isActive = (currentBand === si);
           var isTarget = (targetBand === si);
@@ -242,7 +387,7 @@
           bandsHtml +=
             '<div class="' + cls + '">' +
               '<div class="cmm-band-header">' +
-                '<span class="cmm-band-range">' + bandRanges[si] + '</span>' +
+                '<span class="cmm-band-range">' + BAND_RANGES[si] + '</span>' +
                 '<span class="cmm-band-name">' + BAND_LABELS[si] + '</span>' +
               '</div>' +
               '<div class="cmm-band-desc">' + escapeHtml(item.states[si]) + '</div>' +
@@ -251,22 +396,29 @@
         }
         bandsHtml += '</div>';
 
+        // Editable target
+        var targetVal = (resp.target !== null && resp.target !== undefined && resp.target !== '') ? resp.target : item.target;
+
         card.innerHTML =
           '<div class="cmm-card-top">' +
             '<div class="cmm-card-title">' +
               '<span class="cmm-card-num">' + subNum + '</span>' +
+              '<iconify-icon icon="' + subIcon + '" width="18" height="18" style="vertical-align:middle"></iconify-icon> ' +
               '<span class="cmm-card-name">' + escapeHtml(item.sub) + '</span>' +
             '</div>' +
             '<div class="cmm-card-controls">' +
-              '<select class="cmm-level-select" data-key="' + key + '">' + selectOpts + '</select>' +
-              gapHtml +
+              '<label class="cmm-control-label">Level: <select class="cmm-level-select" data-key="' + key + '">' + selectOpts + '</select></label>' +
+              '<label class="cmm-control-label">Target: <input type="number" class="cmm-target-input" data-key="' + key + '" value="' + targetVal + '" min="0" max="400" step="50"></label>' +
+              '<span class="cmm-gap-container">' + gapHtml + '</span>' +
             '</div>' +
           '</div>' +
           '<p class="cmm-card-desc">' + escapeHtml(item.desc) + '</p>' +
           bandsHtml +
-          '<textarea class="cmm-card-notes" data-key="' + key + '" placeholder="Discussion notes\u2026" rows="2">' + escapeHtml(resp.notes) + '</textarea>';
+          '<textarea class="cmm-card-notes" data-key="' + key + '" placeholder="Discussion notes\u2026" rows="2">' + escapeHtml(resp.notes || '') + '</textarea>';
 
-        body.appendChild(card);
+        subWrapper.appendChild(subHeader);
+        subWrapper.appendChild(card);
+        body.appendChild(subWrapper);
       });
 
       section.appendChild(header);
@@ -274,23 +426,71 @@
       container.appendChild(section);
     });
 
-    // Wire up events via delegation
+    // Wire up events via delegation (once, on container)
     container.addEventListener('change', function (e) {
       if (e.target.classList.contains('cmm-level-select')) {
         var key = e.target.getAttribute('data-key');
-        if (!state.responses[key]) state.responses[key] = { level: '', notes: '' };
+        if (!state.responses[key]) state.responses[key] = { level: DEFAULT_LEVEL, notes: '', target: null };
         state.responses[key].level = e.target.value;
         saveState();
-        render();
+        // Update card in-place instead of full re-render
+        var card = e.target.closest('.cmm-card');
+        if (card) {
+          var gi = parseInt(card.getAttribute('data-gi'), 10);
+          var ii = parseInt(card.getAttribute('data-ii'), 10);
+          updateCard(card, gi, ii);
+          // Also update the sub-header summary
+          var subWrapper = card.closest('.cmm-sub-wrapper');
+          if (subWrapper) {
+            var subHeader = subWrapper.querySelector('.cmm-sub-header');
+            var newLevel = parseInt(e.target.value, 10);
+            var newBand = levelToBand(newLevel);
+            var levelBadge = subHeader.querySelector('.cmm-sub-level-badge');
+            var bandLabelEl = subHeader.querySelector('.cmm-sub-band-label');
+            if (levelBadge) levelBadge.textContent = newLevel;
+            if (bandLabelEl) bandLabelEl.textContent = newBand >= 0 ? BAND_LABELS[newBand] : '\u2014';
+            subHeader.classList.add('cmm-sub-header--assessed');
+          }
+        }
+      }
+    });
+
+    container.addEventListener('change', function (e) {
+      if (e.target.classList.contains('cmm-target-input')) {
+        var key = e.target.getAttribute('data-key');
+        if (!state.responses[key]) state.responses[key] = { level: DEFAULT_LEVEL, notes: '', target: null };
+        var val = e.target.value;
+        state.responses[key].target = val !== '' ? parseInt(val, 10) : null;
+        saveState();
+        var card = e.target.closest('.cmm-card');
+        if (card) {
+          var gi = parseInt(card.getAttribute('data-gi'), 10);
+          var ii = parseInt(card.getAttribute('data-ii'), 10);
+          updateCard(card, gi, ii);
+        }
       }
     });
 
     container.addEventListener('input', function (e) {
       if (e.target.classList.contains('cmm-card-notes')) {
         var key = e.target.getAttribute('data-key');
-        if (!state.responses[key]) state.responses[key] = { level: '', notes: '' };
+        if (!state.responses[key]) state.responses[key] = { level: DEFAULT_LEVEL, notes: '', target: null };
         state.responses[key].notes = e.target.value;
         saveState();
+      }
+      if (e.target.classList.contains('cmm-target-input')) {
+        // Live update gap as user types
+        var key = e.target.getAttribute('data-key');
+        if (!state.responses[key]) state.responses[key] = { level: DEFAULT_LEVEL, notes: '', target: null };
+        var val = e.target.value;
+        state.responses[key].target = val !== '' ? parseInt(val, 10) : null;
+        saveState();
+        var card = e.target.closest('.cmm-card');
+        if (card) {
+          var gi = parseInt(card.getAttribute('data-gi'), 10);
+          var ii = parseInt(card.getAttribute('data-ii'), 10);
+          updateCard(card, gi, ii);
+        }
       }
     });
   }
@@ -343,6 +543,7 @@
   }
 
   function expandAll() {
+    // Expand categories
     var bodies = document.querySelectorAll('#cmm-container .cmm-cat-body');
     var headers = document.querySelectorAll('#cmm-container .cmm-cat-header');
     for (var i = 0; i < bodies.length; i++) {
@@ -350,9 +551,26 @@
       headers[i].setAttribute('aria-expanded', 'true');
       headers[i].querySelector('.cmm-cat-chevron').textContent = '\u25BE';
     }
+    // Expand sub-cats
+    var subCards = document.querySelectorAll('#cmm-container .cmm-card');
+    var subHeaders = document.querySelectorAll('#cmm-container .cmm-sub-header');
+    for (var j = 0; j < subCards.length; j++) {
+      subCards[j].style.display = '';
+      subHeaders[j].setAttribute('aria-expanded', 'true');
+      subHeaders[j].querySelector('.cmm-sub-chevron').textContent = '\u25BE';
+    }
   }
 
   function collapseAll() {
+    // Collapse sub-cats first
+    var subCards = document.querySelectorAll('#cmm-container .cmm-card');
+    var subHeaders = document.querySelectorAll('#cmm-container .cmm-sub-header');
+    for (var j = 0; j < subCards.length; j++) {
+      subCards[j].style.display = 'none';
+      subHeaders[j].setAttribute('aria-expanded', 'false');
+      subHeaders[j].querySelector('.cmm-sub-chevron').textContent = '\u25B8';
+    }
+    // Collapse categories
     var bodies = document.querySelectorAll('#cmm-container .cmm-cat-body');
     var headers = document.querySelectorAll('#cmm-container .cmm-cat-header');
     for (var i = 0; i < bodies.length; i++) {
@@ -377,9 +595,10 @@
       group.items.forEach(function (item, ii) {
         var key = responseKey(gi, ii);
         var resp = state.responses[key] || {};
-        var lvl = (resp.level !== '' && resp.level !== undefined) ? resp.level : '_Not assessed_';
-        var band = levelToBand(resp.level);
+        var lvl = (resp.level !== '' && resp.level !== undefined) ? resp.level : DEFAULT_LEVEL;
+        var band = levelToBand(lvl);
         var bandLabel = band >= 0 ? BAND_LABELS[band] : 'Not assessed';
+        var effectiveTarget = getEffectiveTarget(key, item);
 
         lines.push('### ' + item.sub);
         lines.push('');
@@ -387,13 +606,11 @@
         lines.push('');
         lines.push('**Current Level:** ' + lvl + ' (' + bandLabel + ')');
         lines.push('');
-        lines.push('**Target:** ' + item.target + ' (' + BAND_LABELS[levelToBand(item.target)] + ')');
+        lines.push('**Target:** ' + effectiveTarget + ' (' + BAND_LABELS[levelToBand(effectiveTarget)] + ')');
         lines.push('');
-        if (resp.level !== '' && resp.level !== undefined) {
-          var gap = parseInt(resp.level, 10) - item.target;
-          lines.push('**Gap:** ' + (gap >= 0 ? '+' : '') + gap);
-          lines.push('');
-        }
+        var gap = parseInt(lvl, 10) - effectiveTarget;
+        lines.push('**Gap:** ' + (gap >= 0 ? '+' : '') + gap);
+        lines.push('');
         if (resp.notes) {
           lines.push('**Notes:** ' + resp.notes);
           lines.push('');
@@ -412,16 +629,16 @@
       group.items.forEach(function (item, ii) {
         var key = responseKey(gi, ii);
         var resp = state.responses[key] || {};
-        var lvl = (resp.level !== '' && resp.level !== undefined) ? resp.level : '\u2014';
-        var band = levelToBand(resp.level);
+        var lvl = (resp.level !== '' && resp.level !== undefined) ? resp.level : DEFAULT_LEVEL;
+        var band = levelToBand(lvl);
         var bandLabel = band >= 0 ? BAND_LABELS[band] : '\u2014';
-        var gap = (resp.level !== '' && resp.level !== undefined) ? (parseInt(resp.level, 10) - item.target) : '\u2014';
-        lines.push('| ' + group.cat + ' | ' + item.sub + ' | ' + lvl + ' | ' + bandLabel + ' | ' + item.target + ' | ' + gap + ' |');
+        var effectiveTarget = getEffectiveTarget(key, item);
+        var gap = parseInt(lvl, 10) - effectiveTarget;
+        lines.push('| ' + group.cat + ' | ' + item.sub + ' | ' + lvl + ' | ' + bandLabel + ' | ' + effectiveTarget + ' | ' + gap + ' |');
       });
     });
 
     var md = lines.join('\n');
-    // Download as .md file
     var blob = new Blob([md], { type: 'text/markdown' });
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
