@@ -164,6 +164,7 @@
     container.innerHTML = '';
 
     DATA.forEach(function (group, gi) {
+      var catNum = gi + 1;
       var icon = CAT_ICONS[group.cat] || 'fluent-emoji-flat:clipboard';
 
       // Section wrapper
@@ -185,7 +186,7 @@
       header.innerHTML =
         '<span class="cmm-cat-chevron">\u25B8</span>' +
         '<iconify-icon icon="' + icon + '" width="28" height="28" style="vertical-align:middle"></iconify-icon> ' +
-        '<span class="cmm-cat-title">' + group.cat + '</span>' +
+        '<span class="cmm-cat-title">' + catNum + '. ' + group.cat + '</span>' +
         '<span class="cmm-cat-count">' + assessedCount + ' / ' + group.items.length + '</span>';
 
       var body = document.createElement('div');
@@ -205,6 +206,7 @@
       group.items.forEach(function (item, ii) {
         var key = responseKey(gi, ii);
         var resp = state.responses[key] || { level: '', notes: '' };
+        var subNum = catNum + '.' + (ii + 1);
         var currentBand = levelToBand(resp.level);
         var targetBand = levelToBand(item.target);
         var isAssessed = (resp.level !== '' && resp.level !== undefined);
@@ -252,6 +254,7 @@
         card.innerHTML =
           '<div class="cmm-card-top">' +
             '<div class="cmm-card-title">' +
+              '<span class="cmm-card-num">' + subNum + '</span>' +
               '<span class="cmm-card-name">' + escapeHtml(item.sub) + '</span>' +
             '</div>' +
             '<div class="cmm-card-controls">' +
