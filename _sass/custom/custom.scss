@@ -2,6 +2,15 @@
 // Site-wide customizations
 // ============================================
 
+// Give the sidebar site title breathing room
+.site-header {
+  padding-top: 1.5rem;
+}
+.site-title {
+  font-size: 1.15rem !important;
+  line-height: 1.35;
+}
+
 // TOC starts collapsed — JS removes 'open' attr; this class prevents flash
 .main-content details.toc-collapsed:not([open]) > *:not(summary) {
   display: none;
